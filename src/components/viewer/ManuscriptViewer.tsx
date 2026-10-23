@@ -54,8 +54,37 @@ export const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const [blobUrl, setBlobUrl] = useState<string>('');
 
-  const resolvedImageUrl = imageUrl || (page ? pagesApi.getPageImageUrl(page.id) : '');
+  useEffect(() => {
+    let active = true;
+    let createdUrl = '';
+
+    if (page?.id && !imageUrl) {
+      pagesApi
+        .fetchPageImageBlob(page.id)
+        .then((url) => {
+          if (active) {
+            createdUrl = url;
+            setBlobUrl(url);
+          } else {
+            URL.revokeObjectURL(url);
+          }
+        })
+        .catch(() => {
+          if (active) setBlobUrl('');
+        });
+    } else {
+      setBlobUrl('');
+    }
+
+    return () => {
+      active = false;
+      if (createdUrl) URL.revokeObjectURL(createdUrl);
+    };
+  }, [page?.id, imageUrl]);
+
+  const resolvedImageUrl = imageUrl || blobUrl || (page ? pagesApi.getPageImageUrl(page.id) : '');
 
   // Reset viewport when page changes
   useEffect(() => {

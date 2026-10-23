@@ -12,8 +12,8 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { normalizeAxiosError } from './errors';
 import { ApiResponse } from './types';
 
-// Default to env var or relative '/api/v1' for Vite dev proxy/same-origin
-const DEFAULT_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+// Default to env var or independent NestJS backend service URL
+const DEFAULT_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
 
 export function getEffectiveApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
@@ -34,7 +34,7 @@ export function setCustomApiBaseUrl(url: string | null): void {
   apiClient.defaults.baseURL = getEffectiveApiBaseUrl();
 }
 
-// Token storage helpers
+// Token storage helpers - Prefer short-lived session storage for bearer tokens
 const TOKEN_KEY = 'manuscript_auth_token';
 
 export function getStoredToken(): string | null {
@@ -42,14 +42,14 @@ export function getStoredToken(): string | null {
   return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
 }
 
-export function setStoredToken(token: string | null, remember: boolean = true): void {
+export function setStoredToken(token: string | null, remember: boolean = false): void {
   if (typeof window === 'undefined') return;
   if (!token) {
     sessionStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(TOKEN_KEY);
   } else if (remember) {
     localStorage.setItem(TOKEN_KEY, token);
-    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.setItem(TOKEN_KEY, token);
   } else {
     sessionStorage.setItem(TOKEN_KEY, token);
     localStorage.removeItem(TOKEN_KEY);

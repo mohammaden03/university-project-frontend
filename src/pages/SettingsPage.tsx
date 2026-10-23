@@ -235,9 +235,9 @@ export const SettingsPage: React.FC = () => {
 };
 
 export const LoginPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) => {
-  const { login, switchQuickUser, isLoading } = useAuth();
-  const [email, setEmail] = useState<string>('researcher@manuscript.ai');
-  const [password, setPassword] = useState<string>('ResearchPass2026!');
+  const { login, isLoading } = useAuth();
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -282,7 +282,7 @@ export const LoginPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuc
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="researcher@manuscript.ai"
+              placeholder="name@university.ac.ir"
               dir="ltr"
               className="w-full p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950 font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50"
             />
@@ -313,44 +313,37 @@ export const LoginPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuc
           </Button>
         </form>
 
-        {/* Quick Credentials for Academic Evaluators */}
-        <div className="pt-4 border-t border-stone-100 dark:border-stone-800 text-xs space-y-2">
-          <p className="font-semibold text-stone-600 dark:text-stone-400 text-center">
-            ورود سریع آزمایشی برای ارزیابان دانشگاهی:
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={async () => {
-                await switchQuickUser('ADMIN');
-                onLoginSuccess();
-              }}
-              className="p-2 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[11px] font-medium hover:bg-purple-100"
-            >
-              مدیر ارشد (Admin)
-            </button>
-            <button
-              type="button"
-              onClick={async () => {
-                await switchQuickUser('RESEARCHER');
-                onLoginSuccess();
-              }}
-              className="p-2 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[11px] font-medium hover:bg-amber-100"
-            >
-              پژوهشگر (Researcher)
-            </button>
-            <button
-              type="button"
-              onClick={async () => {
-                await switchQuickUser('VIEWER');
-                onLoginSuccess();
-              }}
-              className="p-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-[11px] font-medium hover:bg-stone-100"
-            >
-              بیننده (Viewer)
-            </button>
+        {/* Development Email Fillers (Gated for development mode only) */}
+        {import.meta.env.DEV && (
+          <div className="pt-4 border-t border-stone-100 dark:border-stone-800 text-xs space-y-2">
+            <p className="font-semibold text-stone-500 dark:text-stone-400 text-center text-[11px]">
+              انتخاب سریع ایمیل‌های آزمایشی دانشگاهی (محیط توسعه):
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setEmail('admin@manuscript.ai')}
+                className="p-2 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[11px] font-medium hover:bg-purple-100"
+              >
+                مدیر (Admin)
+              </button>
+              <button
+                type="button"
+                onClick={() => setEmail('researcher@manuscript.ai')}
+                className="p-2 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[11px] font-medium hover:bg-amber-100"
+              >
+                پژوهشگر (Researcher)
+              </button>
+              <button
+                type="button"
+                onClick={() => setEmail('viewer@manuscript.ai')}
+                className="p-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-[11px] font-medium hover:bg-stone-100"
+              >
+                بیننده (Viewer)
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

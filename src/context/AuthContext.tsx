@@ -15,27 +15,25 @@ interface AuthContextType {
   apiBaseUrl: string;
   login: (email: string, password: string, remember?: boolean) => Promise<void>;
   logout: () => Promise<void>;
-  switchQuickUser: (role: UserRole) => Promise<void>;
+  devQuickLogin?: (role: UserRole, password: string) => Promise<void>;
   refreshUser: () => Promise<void>;
   checkBackendHealth: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const DEMO_CREDENTIALS: Record<UserRole, { email: string; pass: string; title: string }> = {
+// Reference development user accounts without hardcoded passwords
+export const DEV_USERS: Record<UserRole, { email: string; title: string }> = {
   ADMIN: {
     email: 'admin@manuscript.ai',
-    pass: 'AdminPass2026!',
     title: 'مدیر ارشد سامانه (Dr. Maryam Mirzakhani)',
   },
   RESEARCHER: {
     email: 'researcher@manuscript.ai',
-    pass: 'ResearchPass2026!',
     title: 'پژوهشگر ارشد نسخ خطی (Prof. Ehsan Yarshater)',
   },
   VIEWER: {
     email: 'viewer@manuscript.ai',
-    pass: 'ViewerPass2026!',
     title: 'پژوهشگر مهمان / بیننده (Layla Al-Khatib)',
   },
 };
@@ -127,9 +125,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const switchQuickUser = async (role: UserRole) => {
-    const cred = DEMO_CREDENTIALS[role];
-    await login(cred.email, cred.pass, true);
+  const devQuickLogin = async (role: UserRole, password: string) => {
+    if (!import.meta.env.DEV) {
+      throw new Error('ورود سریع فقط در محیط توسعه (DEV) مجاز است.');
+    }
+    const userRef = DEV_USERS[role];
+    await login(userRef.email, password, false);
   };
 
   return (
@@ -142,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         apiBaseUrl,
         login,
         logout,
-        switchQuickUser,
+        devQuickLogin: import.meta.env.DEV ? devQuickLogin : undefined,
         refreshUser,
         checkBackendHealth,
       }}

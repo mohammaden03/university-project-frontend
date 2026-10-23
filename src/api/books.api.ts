@@ -97,10 +97,22 @@ export const pagesApi = {
     });
   },
 
-  // Helper to get authenticated folio image URL or stream
+  // Helper to get folio image URL without exposing bearer token in query strings
   getPageImageUrl: (pageId: string): string => {
     const base = getEffectiveApiBaseUrl();
-    const token = getStoredToken();
-    return `${base}/pages/${pageId}/image${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+    return `${base}/pages/${pageId}/image`;
+  },
+
+  // Authenticated image retrieval via Authorization header with Blob URL
+  fetchPageImageBlob: async (pageId: string): Promise<string> => {
+    const base = getEffectiveApiBaseUrl();
+    const response = await fetch(`${base}/pages/${pageId}/image`, {
+      headers: getStoredToken() ? { Authorization: `Bearer ${getStoredToken()}` } : {},
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch page image (${response.status})`);
+    }
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
   },
 };

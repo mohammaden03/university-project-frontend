@@ -14,8 +14,10 @@ import {
   RefreshCw,
   Server,
   Zap,
+  LogOut,
+  LogIn,
 } from 'lucide-react';
-import { useAuth, DEMO_CREDENTIALS } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { UserRole } from '../../api/types';
 
@@ -30,9 +32,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   navigate,
   title = 'پیشخوان سامانه',
 }) => {
-  const { user, connectionStatus, switchQuickUser, checkBackendHealth, apiBaseUrl } = useAuth();
+  const { user, connectionStatus, logout, checkBackendHealth, apiBaseUrl } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [showRoleMenu, setShowRoleMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
 
   const handleHealthCheck = async () => {
@@ -118,54 +120,72 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-stone-600" />}
         </button>
 
-        {/* Quick Demo Role Switcher (Academic Evaluation Helper) */}
+        {/* User Account / Session Profile */}
         <div className="relative">
-          <button
-            onClick={() => setShowRoleMenu(!showRoleMenu)}
-            className="flex items-center gap-2 p-1.5 rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800 text-xs font-medium transition-colors"
-          >
-            <div className="w-7 h-7 rounded-lg bg-amber-600 text-white flex items-center justify-center font-bold text-xs">
-              {user ? user.displayName.charAt(0) : '?'}
-            </div>
-            <span className="hidden md:inline text-stone-700 dark:text-stone-300">
-              {user ? user.role : 'مهمان'}
-            </span>
-          </button>
+          {user ? (
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-2 p-1.5 rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800 text-xs font-medium transition-colors"
+            >
+              <div className="w-7 h-7 rounded-lg bg-amber-600 text-white flex items-center justify-center font-bold text-xs">
+                {user.displayName.charAt(0)}
+              </div>
+              <span className="hidden md:inline text-stone-700 dark:text-stone-300">
+                {user.displayName}
+              </span>
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('login')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium transition-colors"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>ورود</span>
+            </button>
+          )}
 
-          {showRoleMenu && (
+          {showUserMenu && user && (
             <div
               className="absolute left-0 mt-2 w-72 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl py-2 z-50 text-right animate-in fade-in zoom-in-95"
-              onClick={() => setShowRoleMenu(false)}
+              onClick={() => setShowUserMenu(false)}
             >
-              <div className="px-4 py-2 border-b border-stone-100 dark:border-stone-800">
-                <p className="text-xs font-semibold text-stone-800 dark:text-stone-200">
-                  تغییر سریع نقش برای ارزیابی سامانه:
+              <div className="px-4 py-3 border-b border-stone-100 dark:border-stone-800">
+                <p className="text-xs font-bold text-stone-800 dark:text-stone-200">
+                  {user.displayName}
                 </p>
-                <p className="text-[11px] text-stone-500">حساب‌های کاربری واقعی دیتابیس با رمزنگاری PBKDF2</p>
+                <p className="text-[11px] text-stone-400 font-mono mt-0.5">{user.email}</p>
+                <div className="mt-2 inline-block px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-800">
+                  نقش کاربری: {user.role}
+                </div>
               </div>
 
-              {(['ADMIN', 'RESEARCHER', 'VIEWER'] as UserRole[]).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => switchQuickUser(r)}
-                  className={`w-full text-right px-4 py-2.5 text-xs hover:bg-stone-50 dark:hover:bg-stone-800 flex items-center justify-between ${
-                    user?.role === r ? 'bg-amber-50/70 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-semibold' : 'text-stone-700 dark:text-stone-300'
-                  }`}
-                >
-                  <div>
-                    <p>{DEMO_CREDENTIALS[r].title}</p>
-                    <p className="text-[10px] text-stone-400 font-mono">{DEMO_CREDENTIALS[r].email}</p>
-                  </div>
-                  {user?.role === r && <CheckCircle2 className="w-4 h-4 text-amber-600" />}
-                </button>
-              ))}
-
-              <div className="pt-2 mt-1 border-t border-stone-100 dark:border-stone-800 px-3">
+              <div className="py-1">
                 <button
                   onClick={() => navigate('settings')}
-                  className="w-full text-center py-1.5 text-xs text-stone-500 hover:text-amber-600 transition-colors"
+                  className="w-full text-right px-4 py-2 text-xs text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
                 >
-                  تنظیمات پیشرفته اتصال و نشست‌ها...
+                  تنظیمات اتصال و API
+                </button>
+                {user.role === 'ADMIN' && (
+                  <button
+                    onClick={() => navigate('users')}
+                    className="w-full text-right px-4 py-2 text-xs text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+                  >
+                    مدیریت پژوهشگران
+                  </button>
+                )}
+              </div>
+
+              <div className="pt-2 border-t border-stone-100 dark:border-stone-800 px-2">
+                <button
+                  onClick={async () => {
+                    await logout();
+                    navigate('login');
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors font-semibold"
+                >
+                  <span>خروج از حساب کاربری</span>
+                  <LogOut className="w-4 h-4" />
                 </button>
               </div>
             </div>
