@@ -1,0 +1,1182 @@
+# FRONTEND MASTER PROMPT — MANUSCRIPT AI
+
+## 1. Your Role and Objective
+
+Act as a senior React engineer, TypeScript architect, frontend UI/UX designer, API integration engineer, accessibility specialist, and software tester.
+
+Build a complete, professional, responsive frontend for **Manuscript AI**, an academic application for recognizing, transcribing, managing, and searching historical Persian and Arabic manuscripts using HTR/OCR technology.
+
+The frontend must be a fully functional, independently runnable application.
+
+The backend is a separate NestJS application that exposes a REST API under `/api/v1`.
+
+Your job is to implement the frontend and integrate it with the backend through HTTP requests.
+
+Do not implement backend business logic in the frontend.
+
+Do not connect directly to PostgreSQL.
+
+Do not access backend source files at runtime.
+
+Do not fabricate API endpoints, response properties, model results, dashboard statistics, or training metrics.
+
+The frontend must be designed so it can run on a separate development server, separate port, separate repository, or separate deployment environment from the backend.
+
+## 2. Mandatory Backend Integration Contract
+
+Before implementing API integration, inspect the available backend OpenAPI specification.
+
+The expected development defaults are:
+
+- Frontend: `http://localhost:5173`
+- Backend API base URL: `http://localhost:3000/api/v1`
+- Swagger documentation: `http://localhost:3000/api/docs`
+- OpenAPI JSON: `http://localhost:3000/api/docs-json`
+
+The backend may be running locally or remotely.
+
+Therefore, the backend URL must be configurable through an environment variable.
+
+Create:
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:3000/api/v1
+```
+
+All API requests must use this configuration.
+
+Do not hardcode `localhost:3000` throughout the application.
+
+If the backend is hosted on another server, the owner must be able to change the environment variable and run the frontend without modifying source code.
+
+The frontend must never connect directly to PostgreSQL or call the internal Python AI service.
+
+All application data must come through the NestJS API.
+
+### API contract rules
+
+1. Inspect the real OpenAPI schema before implementing endpoint calls.
+2. Generate TypeScript API types from the backend OpenAPI specification whenever possible.
+3. If the specification is not yet available, create a clearly documented API contract based on the backend requirements and mark it provisional.
+4. Do not invent undocumented endpoints.
+5. Do not silently rename response properties.
+6. Do not assume all endpoints return the same response envelope unless the backend contract confirms it.
+7. Implement API error handling according to the actual backend response format.
+8. Keep API calls in dedicated modules rather than inside every UI component.
+9. If an endpoint is missing, report the missing backend capability instead of pretending that the request succeeded.
+10. Document the exact backend contract required for each frontend feature.
+
+The frontend must be independently executable even when the backend is temporarily unavailable. In that case, show an informative connection error and retry options rather than presenting fake application data.
+
+## 3. Technology Stack
+
+Use:
+
+- React
+- TypeScript
+- Vite
+- React Router
+- Axios
+- TanStack Query
+- React Hook Form
+- Zod
+- Tailwind CSS
+- An accessible component system compatible with RTL, preferably shadcn/ui where appropriate
+- Lucide React
+- Vitest
+- React Testing Library
+- Playwright
+
+Use compatible, stable dependency versions.
+
+Enable strict TypeScript checking.
+
+Use reusable components, explicit types, and consistent styling.
+
+Do not use plain JavaScript for application components.
+
+## 4. Repository Structure
+
+Create a separate frontend repository:
+
+```text
+manuscript-ai-frontend/
+├── public/
+├── src/
+│   ├── app/
+│   │   ├── App.tsx
+│   │   ├── providers.tsx
+│   │   └── query-client.ts
+│   ├── api/
+│   │   ├── client.ts
+│   │   ├── errors.ts
+│   │   ├── types.ts
+│   │   ├── auth.api.ts
+│   │   ├── users.api.ts
+│   │   ├── books.api.ts
+│   │   ├── pages.api.ts
+│   │   ├── recognition.api.ts
+│   │   ├── transcriptions.api.ts
+│   │   ├── search.api.ts
+│   │   ├── dashboard.api.ts
+│   │   ├── datasets.api.ts
+│   │   ├── models.api.ts
+│   │   ├── evaluations.api.ts
+│   │   └── training.api.ts
+│   ├── assets/
+│   ├── components/
+│   │   ├── ui/
+│   │   ├── common/
+│   │   ├── layout/
+│   │   ├── forms/
+│   │   ├── books/
+│   │   ├── manuscripts/
+│   │   ├── recognition/
+│   │   ├── transcription/
+│   │   ├── search/
+│   │   └── evaluation/
+│   ├── features/
+│   ├── hooks/
+│   ├── layouts/
+│   ├── pages/
+│   ├── routes/
+│   ├── schemas/
+│   ├── types/
+│   ├── utils/
+│   ├── styles/
+│   ├── main.tsx
+│   └── index.css
+├── tests/
+├── e2e/
+├── docs/
+│   ├── installation.md
+│   ├── backend-integration.md
+│   ├── pages-and-features.md
+│   └── IMPLEMENTATION_STATUS.md
+├── .env.example
+├── .gitignore
+├── Dockerfile
+├── nginx.conf
+├── index.html
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── README.md
+```
+
+You may adjust the structure where necessary, but keep UI components, API integration, validation, and page-specific business presentation separate.
+
+## 5. Language and RTL Requirements
+
+The primary interface language is Persian.
+
+Set:
+
+```html
+<html lang="fa" dir="rtl">
+```
+
+Use Persian for interface labels, buttons, navigation, form instructions, notifications, and error messages.
+
+Use English identifiers in source code.
+
+Ensure that mixed Persian, Arabic, and English text renders correctly.
+
+Handle bidirectional text appropriately in:
+
+- Search fields
+- Transcription editors
+- Book titles
+- Author names
+- Page numbers
+- Tables
+- Metadata
+- Model identifiers
+- Error messages
+
+Do not automatically modify the original recognized manuscript text.
+
+Do not modernize spelling or rewrite historical language.
+
+Use a readable Persian font with an appropriate fallback stack.
+
+Ensure that all components work with right-to-left layout rather than simply aligning all text to the right.
+
+## 6. Visual Design
+
+Create a professional digital humanities application suitable for university research and demonstrations.
+
+The interface must be:
+
+- Modern and restrained
+- Readable
+- Responsive
+- Accessible
+- Consistent
+- Suitable for long text
+- Appropriate for manuscript image inspection
+- Clear about the status of AI operations
+
+Use a coherent design system for:
+
+- Colors
+- Typography
+- Spacing
+- Borders
+- Cards
+- Buttons
+- Tables
+- Dialogs
+- Forms
+- Loading indicators
+- Status indicators
+- Error messages
+- Empty states
+
+Avoid excessive gradients, animations, unnecessary shadows, and decorative elements that reduce readability.
+
+Support desktop, tablet, and mobile layouts.
+
+A light theme is required. A dark theme may be added if implemented consistently.
+
+Use real application components rather than static mockup images.
+
+## 7. Application Layout
+
+Create a reusable application shell.
+
+Include:
+
+- Sidebar navigation
+- Top navigation
+- Application logo and name
+- User profile menu
+- Breadcrumbs
+- Main content area
+- Responsive sidebar
+- Loading states
+- Global error handling
+- Logout action
+
+Provide navigation for:
+
+1. Dashboard
+2. Books and manuscripts
+3. Recognition workspace
+4. Transcription review
+5. Advanced search
+6. Dataset management
+7. Models
+8. Evaluations
+9. Training jobs
+10. User management
+11. Settings
+12. Help
+13. Logout
+
+Only show navigation options appropriate to the current user's role.
+
+The backend remains the authority for authorization. Hiding navigation items is not a security control.
+
+## 8. Authentication
+
+Create:
+
+- Login page
+- Logout workflow
+- Current-user loading
+- Protected routes
+- Unauthorized page
+- Not-found page
+- Session-expiration handling
+- Authentication loading state
+
+Integrate with the backend authentication endpoints defined in the actual OpenAPI specification.
+
+Use the backend's real authentication strategy.
+
+If it uses secure HttpOnly cookies, configure Axios with credentials as required.
+
+If it uses bearer access tokens, follow the backend's documented token lifecycle and storage strategy.
+
+Do not assume cookie-based and bearer-token authentication are interchangeable.
+
+Do not store sensitive tokens in localStorage by default.
+
+Implement a centralized response handler for unauthorized responses.
+
+Prevent infinite refresh loops if refresh-token support is implemented.
+
+Do not automatically retry requests indefinitely.
+
+The frontend must not contain a hardcoded administrator account or password.
+
+## 9. API Client
+
+Create a centralized Axios client.
+
+It must:
+
+- Read the base URL from `VITE_API_BASE_URL`.
+- Use the documented request and response formats.
+- Handle JSON responses.
+- Support multipart uploads.
+- Apply authentication consistently.
+- Handle request timeouts.
+- Normalize API errors.
+- Support request cancellation where appropriate.
+- Avoid duplicate request submissions.
+- Avoid leaking tokens into logs.
+- Handle network failures and CORS errors clearly.
+
+Create separate API modules for:
+
+- Authentication
+- Users
+- Books
+- Manuscript pages
+- Recognition jobs
+- Transcriptions
+- Search
+- Dashboard
+- Datasets
+- Models
+- Evaluations
+- Training jobs
+
+Use TanStack Query for server-state fetching, caching, mutations, and invalidation.
+
+Do not issue raw Axios requests throughout individual page components.
+
+After a successful mutation, invalidate or update the relevant query cache.
+
+Do not treat a successful HTTP response as proof that a long-running recognition job has completed.
+
+## 10. Dashboard
+
+Build a real dashboard connected to the backend.
+
+Display:
+
+- Number of books
+- Number of manuscript pages
+- Completed recognition jobs
+- Pending recognition jobs
+- Failed recognition jobs
+- Transcriptions awaiting review
+- Registered dataset samples
+- Available recognition models
+- Recent books
+- Recent recognition jobs
+- Recent activity when supported by the API
+
+Retrieve all statistics from the dashboard API.
+
+Do not hardcode statistics.
+
+If the backend returns zero records, show a proper empty state.
+
+If the backend is unavailable, show a connection error rather than invented values.
+
+Add shortcuts to:
+
+- Create a book
+- Upload a manuscript page
+- Start recognition
+- Review transcriptions
+- Search manuscripts
+
+Display model evaluation metrics only when the backend provides real completed evaluations.
+
+Clearly label missing evaluation data as “ارزیابی انجام نشده است”.
+
+## 11. Book Management
+
+Implement:
+
+- Book list
+- Search books
+- Filter books
+- Pagination
+- Sorting
+- Create book
+- View book details
+- Edit book
+- Delete book with confirmation
+
+Book fields should match the backend API contract and include:
+
+- Title
+- Author
+- Language
+- Description
+- Manuscript identifier
+- Estimated date
+- Collection
+- Source URL
+- License information
+
+Allow optional historical metadata to remain empty when unknown.
+
+Do not invent authors, dates, or historical details.
+
+Use React Hook Form and Zod for validation.
+
+Display backend validation errors in the relevant form fields.
+
+Prevent duplicate submissions while a request is in progress.
+
+After successful creation or editing, refresh the relevant data.
+
+## 12. Book Details
+
+Create a detailed book page.
+
+Display:
+
+- Bibliographic information
+- Manuscript metadata
+- Page list
+- Page thumbnails
+- Page identifiers
+- Recognition status
+- Transcription review status
+- Available actions
+
+Implement:
+
+- Add page
+- Open page
+- Edit book metadata
+- Search within the book if supported by the API
+
+Provide clear empty states for books without pages.
+
+Clicking a page must open the correct manuscript page and its transcription workspace.
+
+## 13. Manuscript Upload
+
+Create an upload interface supporting:
+
+- File picker
+- Drag and drop
+- Image preview
+- Single image upload
+- Multiple uploads if supported by the backend
+- Upload progress
+- Validation messages
+- Retry after failure
+
+Initially support JPEG, PNG, and WebP.
+
+Validate the file type and size in the browser for user convenience, but rely on the backend for authoritative validation.
+
+Display:
+
+- Filename
+- File size
+- Preview
+- Upload status
+- Error details
+
+Provide page metadata fields such as page number, folio label, and language.
+
+Use multipart/form-data according to the backend contract.
+
+Do not manually set a multipart Content-Type header if doing so prevents the browser from supplying the correct boundary.
+
+Prevent duplicate uploads caused by repeated button clicks.
+
+After successful upload, navigate to the page details or update the page list.
+
+## 14. Manuscript Image Viewer
+
+Build a reusable image viewer.
+
+Support:
+
+- Image zoom
+- Fit-to-screen
+- Pan when zoomed
+- Rotate the displayed image
+- Full-size viewing
+- Page navigation
+- Image metadata display
+
+The viewer must preserve image proportions.
+
+For large images, avoid unnecessary full-resolution re-rendering on every interaction.
+
+If images require authenticated HTTP requests, use the documented image endpoint and handle authorization correctly.
+
+For binary responses, create and revoke object URLs safely.
+
+Do not construct image URLs from undocumented internal storage paths.
+
+If the backend returns a protected image route, use that route rather than exposing filesystem locations.
+
+## 15. Recognition Workspace
+
+Create a dedicated recognition workspace with two main areas:
+
+- Manuscript image viewer
+- Recognition result and transcription editor
+
+Provide controls for:
+
+- Recognition mode
+- Language
+- Model selection where supported
+- Start recognition
+- Cancel recognition where supported
+- View current job status
+- Open previous results
+
+Clearly distinguish:
+
+- Real pretrained model
+- Fine-tuned model
+- Mock/demo provider
+- Unavailable model
+
+When the user starts recognition:
+
+1. Validate the selected page and options.
+2. Send the request to the correct backend endpoint.
+3. Display a pending state.
+4. Receive the job identifier.
+5. Poll the documented job-status endpoint or use a supported real-time mechanism.
+6. Stop polling when the job reaches a terminal state.
+7. Retrieve and display the result.
+8. Show a useful error if processing fails.
+
+Use bounded polling intervals and stop polling when the page is unmounted.
+
+Do not repeatedly submit new recognition jobs merely to check progress.
+
+Do not display fabricated recognition output.
+
+If the backend is configured for mock mode, show a visible demo-mode indicator.
+
+If the backend reports that no real model is available, explain the problem and provide the appropriate next action.
+
+## 16. Transcription Editor
+
+Create a functional editor for Persian and Arabic transcriptions.
+
+Display:
+
+- Original manuscript image
+- Raw model output
+- Corrected text
+- Book title
+- Page number
+- Model information
+- Recognition status
+- Review status
+- Last saved time
+
+Support:
+
+- Text editing
+- Save changes
+- Cancel changes
+- Unsaved-change detection
+- Confirmation before navigating away
+- Loading states
+- Success and error notifications
+- Revision history
+- Review-status updates where permitted
+
+Use a readable multiline editor with correct RTL behavior.
+
+Do not modify the raw recognition result.
+
+Save changes through the backend API.
+
+After saving, update the relevant cached queries.
+
+If two users edit the same transcription and the backend detects a conflict, display a clear conflict message rather than silently overwriting data.
+
+Do not implement fake autosave. If autosave is included, make its state visible and handle errors safely.
+
+## 17. Transcription History
+
+Provide a revision history interface.
+
+Display:
+
+- Revision number
+- Editor
+- Timestamp
+- Change summary where available
+- Previous text
+- Current text
+
+Allow authorized users to inspect older versions.
+
+If the backend supports restoration, use the actual restoration behavior it exposes.
+
+Do not invent a restore endpoint.
+
+## 18. Advanced Search
+
+Create a dedicated search page.
+
+Support:
+
+- Full-text query
+- Book title
+- Author
+- Language
+- Page number
+- Transcription status
+- Pagination
+- Sorting
+
+Allow multiple filters to be applied together.
+
+Display search results as readable cards or rows.
+
+Each result should include:
+
+- Matching text excerpt
+- Book title
+- Author when available
+- Page identifier
+- Language
+- Review status
+- Link to the manuscript page
+- Link to the transcription editor when authorized
+
+Highlight matching terms when practical.
+
+Preserve the original transcription as returned by the backend.
+
+Do not independently apply different search normalization rules in the frontend.
+
+The backend is responsible for search semantics and Unicode normalization.
+
+The frontend should send the query and display the results.
+
+Support:
+
+- No results
+- Loading
+- API failure
+- Invalid query
+- Pagination
+- Search reset
+
+Debounce text input if appropriate, while avoiding unnecessary requests.
+
+Do not issue a request on every keystroke without a sensible debounce or explicit search action.
+
+## 19. Dataset Management
+
+Build a dataset management page.
+
+Support the dataset operations actually implemented by the backend.
+
+Display:
+
+- Dataset name
+- Language
+- Source
+- License
+- Dataset status
+- Manifest information
+- Sample count where available
+- Validation status
+- Creation date
+
+Provide a manifest validation workflow if the backend supports it.
+
+Display validation reports with:
+
+- Total rows
+- Valid rows
+- Invalid rows
+- Missing images
+- Missing transcriptions
+- Duplicate identifiers
+- Unsupported language values
+- Other validation errors
+
+Do not display invented dataset samples or validation results.
+
+If no dataset exists, explain that a labeled dataset must be added before fine-tuning can be performed.
+
+## 20. Model Registry
+
+Create a model management page.
+
+Display:
+
+- Model name
+- Version
+- Base model
+- Supported languages
+- Supported recognition modes
+- Provider type
+- License
+- Availability status
+- Evaluation status
+
+Clearly distinguish:
+
+- Model registered
+- Model artifacts available
+- Model successfully initialized
+- Model available for inference
+- Model evaluated on a documented dataset
+
+Do not label a model as usable solely because it appears in the database.
+
+Use the actual backend status.
+
+Provide model activation controls only to authorized users and only when the backend exposes that operation.
+
+Display errors when model initialization fails.
+
+## 21. Evaluation Reports
+
+Create an evaluation page.
+
+Display actual evaluation records containing:
+
+- Model version
+- Dataset
+- Language
+- Number of evaluated samples
+- Character Error Rate (CER)
+- Word Error Rate (WER)
+- Inference duration where available
+- Evaluation timestamp
+
+Use charts only when the underlying data exists and the comparison is meaningful.
+
+Lower CER and WER generally indicate fewer recognition errors.
+
+Do not call these metrics “accuracy”.
+
+Do not fabricate scores.
+
+When no experiment exists, show an empty state explaining how evaluation is configured and started.
+
+Support Persian and Arabic as separate evaluation categories where the backend provides corresponding data.
+
+## 22. Training Jobs
+
+Create a training management page.
+
+Display:
+
+- Job identifier
+- Base model
+- Dataset
+- Status
+- Training configuration
+- Start time
+- Completion time
+- Logs
+- Output model artifact
+- Failure details
+
+Use statuses such as:
+
+- CREATED
+- QUEUED
+- RUNNING
+- COMPLETED
+- FAILED
+- CANCELLED
+
+Implement the actual training job creation and cancellation APIs when available.
+
+Validate form input.
+
+Warn the user when the backend reports that a dataset, model, GPU, or other required resource is missing.
+
+Show real logs and status values.
+
+Do not fabricate training loss or progress percentages.
+
+If progress is unavailable from the backend, display the actual status rather than inventing a progress bar.
+
+Do not automatically activate a newly trained model.
+
+## 23. User Administration
+
+Create an administrative interface if supported by the backend.
+
+Allow authorized administrators to:
+
+- List users
+- View user details
+- Create users
+- Edit user information
+- Activate or deactivate accounts
+- Change roles
+
+Support roles:
+
+- ADMIN
+- RESEARCHER
+- VIEWER
+
+Use confirmation dialogs for sensitive actions.
+
+The backend remains responsible for all authorization checks.
+
+Do not expose passwords or password hashes.
+
+## 24. Error Handling
+
+Create a centralized API error-handling system.
+
+Handle:
+
+- Network failures
+- Backend unavailable
+- Request timeout
+- Validation errors
+- Unauthorized requests
+- Forbidden operations
+- Missing resources
+- Duplicate records
+- File upload errors
+- AI service unavailable
+- Recognition failures
+- Dataset validation failures
+- Training failures
+- Rate limiting
+- Unexpected server errors
+
+Display Persian messages that explain what the user can do next.
+
+Preserve useful field-level validation errors.
+
+Do not display raw stack traces, secrets, or internal server details.
+
+Provide retry actions when appropriate.
+
+Do not automatically retry destructive requests or expensive recognition/training operations without explicit safeguards.
+
+## 25. Loading and Empty States
+
+Every data-driven page must have appropriate states for:
+
+- Initial loading
+- Refreshing
+- No data
+- No search results
+- Failed request
+- Unauthorized access
+- Partially available data
+- Missing AI model
+- Pending recognition
+- Failed recognition
+- Missing evaluation results
+
+Avoid blank screens.
+
+Avoid infinite spinners.
+
+Do not use placeholder values that could be mistaken for real records.
+
+## 26. API Type Generation
+
+Use the backend's actual OpenAPI JSON to generate TypeScript types where possible.
+
+Document a command similar to:
+
+```bash
+npx openapi-typescript \
+  http://localhost:3000/api/docs-json \
+  -o src/api/generated.ts
+```
+
+Use the actual OpenAPI URL and generator compatible with the installed dependencies.
+
+If the backend is unavailable, allow generation from a locally saved OpenAPI specification.
+
+Do not overwrite hand-written files with generated types.
+
+Separate generated API types from frontend-only UI types.
+
+Avoid duplicating backend DTO definitions unnecessarily.
+
+When an API contract changes, regenerate types and fix compilation errors rather than bypassing them with `any`.
+
+## 27. Security
+
+Implement frontend security best practices:
+
+- Do not embed backend secrets.
+- Do not connect to the database.
+- Do not hardcode administrator credentials.
+- Avoid storing sensitive authentication tokens in localStorage.
+- Do not use unsafe HTML rendering for manuscript content.
+- Sanitize any rendered HTML if rich-text support is introduced.
+- Protect authenticated routes.
+- Handle unauthorized responses.
+- Validate form input.
+- Do not trust client-side authorization checks.
+- Do not expose internal filesystem paths.
+- Do not log sensitive manuscript content unnecessarily.
+- Configure API requests to the correct origin.
+- Never place secret environment variables in `VITE_*` variables.
+
+Remember that Vite exposes `VITE_*` variables to the browser. They must contain public configuration only.
+
+## 28. Testing
+
+Implement unit, integration, component, and end-to-end tests where appropriate.
+
+### Component tests
+
+Test:
+
+- Login form
+- Book form
+- Upload form
+- Recognition controls
+- Transcription editor
+- Search filters
+- Pagination
+- Role-dependent navigation
+- Loading states
+- Error states
+- Empty states
+
+### API integration tests
+
+Test:
+
+- API base URL configuration
+- Authentication headers or cookie behavior
+- Response parsing
+- Validation errors
+- Unauthorized responses
+- Network errors
+- Multipart upload requests
+- Query parameter encoding
+- Query cache invalidation
+
+Use controlled test responses rather than requiring the real backend for every frontend test.
+
+### End-to-end tests
+
+Use Playwright to test:
+
+1. Login.
+2. Create a book.
+3. Upload a manuscript image.
+4. Open the page.
+5. Request recognition.
+6. Wait for completion.
+7. Edit the transcription.
+8. Save the correction.
+9. Search for the corrected text.
+10. Open the matching page from the search result.
+
+Run these tests against a real backend configured with the deterministic mock provider.
+
+Keep mock API tests separate from real-model integration tests.
+
+Do not report tests as passed unless they have actually run.
+
+## 29. Independent Startup and Deployment
+
+The frontend must run independently from the backend.
+
+Provide:
+
+```bash
+npm install
+npm run dev
+```
+
+The frontend must run at:
+
+`http://localhost:5173`
+
+The backend must run independently at:
+
+`http://localhost:3000`
+
+The frontend should require only:
+
+- Node.js
+- Its own dependencies
+- A valid `VITE_API_BASE_URL`
+- An accessible backend API for real data
+
+Provide a frontend `.env.example`:
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:3000/api/v1
+```
+
+For another backend server, the user should be able to change this variable without changing the source code.
+
+Document the need to configure the corresponding CORS origin on the backend.
+
+Create a production Dockerfile and Nginx configuration if practical.
+
+For production, document how the public frontend URL and backend URL are configured.
+
+Do not expose secrets through frontend build variables.
+
+Do not make the frontend dependent on a shared Docker network when running in the user's browser.
+
+Remember that a browser cannot access another container through its internal service name unless that name is resolvable from the browser. Configure the browser-facing API URL correctly.
+
+## 30. Beginner-Friendly Documentation
+
+Write a clear README that explains:
+
+- What the frontend does
+- What the backend does
+- How the two applications communicate
+- Required software
+- Installation
+- Environment configuration
+- Development startup
+- Production build
+- Tests
+- Troubleshooting
+
+Write `docs/backend-integration.md` explaining:
+
+- API base URL
+- OpenAPI type generation
+- Authentication flow
+- CORS configuration
+- Error response format
+- Pagination
+- Image upload
+- Protected image retrieval
+- Recognition job polling
+- Transcription editing
+- Search requests
+- What to do when an endpoint is missing
+
+Use exact commands and explain which directory to run them from.
+
+Create `docs/IMPLEMENTATION_STATUS.md` and update it as implementation proceeds.
+
+## 31. Implementation Order
+
+Follow this order:
+
+### Phase 1: Project setup
+
+- Inspect the workspace.
+- Create the Vite React TypeScript application.
+- Configure strict TypeScript.
+- Configure Tailwind CSS.
+- Configure routing.
+- Configure the API base URL.
+- Add linting and tests.
+
+### Phase 2: API integration
+
+- Inspect the backend OpenAPI contract.
+- Generate API types.
+- Implement Axios configuration.
+- Implement error handling.
+- Implement authentication integration.
+- Implement TanStack Query.
+
+### Phase 3: Application shell
+
+- Implement RTL layout.
+- Implement navigation.
+- Implement role-aware routes.
+- Implement reusable UI components.
+- Implement global loading and error states.
+
+### Phase 4: Core application
+
+- Implement dashboard.
+- Implement books.
+- Implement book details.
+- Implement image upload.
+- Implement page viewer.
+
+### Phase 5: HTR/OCR workflow
+
+- Implement recognition job creation.
+- Implement status polling.
+- Implement recognition results.
+- Implement transcription editing.
+- Implement revision history.
+
+### Phase 6: Research features
+
+- Implement advanced search.
+- Implement dataset management.
+- Implement model registry.
+- Implement evaluation reports.
+- Implement training job management.
+
+### Phase 7: Administration
+
+- Implement user management.
+- Implement account and settings screens.
+- Apply role-aware navigation and action controls.
+
+### Phase 8: Verification
+
+- Run TypeScript checks.
+- Run linting.
+- Run component tests.
+- Run production build.
+- Run end-to-end tests against the backend.
+- Fix integration errors.
+- Update documentation.
+
+Do not implement all screens as static placeholders before building the API integration layer.
+
+## 32. Final Acceptance Criteria
+
+The frontend is ready when:
+
+- It runs independently on its own development server.
+- The backend URL is configurable without source-code changes.
+- The frontend uses the documented REST API.
+- API types are consistent with the OpenAPI contract.
+- Authentication works against the real backend.
+- Book CRUD works.
+- Page uploads work.
+- Manuscript images can be viewed.
+- Recognition jobs can be submitted and monitored.
+- Real and mock recognition are clearly distinguished.
+- Transcription corrections persist in the backend.
+- Revision history is displayed.
+- Search returns actual backend results.
+- Dashboard statistics are real.
+- Dataset and model pages reflect actual backend records.
+- Evaluation and training screens show actual backend status.
+- Loading, empty, and error states exist.
+- RTL behavior is correct.
+- Responsive layouts work.
+- Automated tests and production builds have been run.
+- No critical buttons are inert.
+- No critical feature depends on fabricated data.
+- The README explains how to run and connect the frontend.
+
+At the end, report:
+
+- Pages implemented
+- API endpoints integrated
+- API endpoints missing from the backend
+- Environment variables
+- Commands to start the frontend
+- Test results
+- Build status
+- Known limitations
+
+Start by inspecting the available backend OpenAPI specification and creating the frontend skeleton. Do not stop at a plan or static design. Implement the application in verifiable phases.

@@ -1,0 +1,6 @@
+{
+  "name": "Manuscript AI — سامانه بازشناسی و بازنویسی متون کهن",
+  "description": "سامانه دانشگاهی بازشناسی، بازنویسی، تصحیح گروهی و جستجوی نسخ خطی فارسی و عربی به همراه میزکار بررسی و بهینه‌سازی عملکرد بک‌اند",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
