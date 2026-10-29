@@ -59,3 +59,43 @@ test('validateApiBaseUrl rejects empty or null values', () => {
   assert.equal(validateApiBaseUrl(null as any).isValid, false);
   assert.equal(validateApiBaseUrl(undefined as any).isValid, false);
 });
+
+test('Token storage enforces sessionStorage and cleans up legacy localStorage', async () => {
+  const mockStorage = () => {
+    const store: Record<string, string> = {};
+    return {
+      getItem: (k: string) => store[k] || null,
+      setItem: (k: string, v: string) => { store[k] = v; },
+      removeItem: (k: string) => { delete store[k]; },
+      clear: () => { Object.keys(store).forEach((k) => delete store[k]); },
+    };
+  };
+
+  const mockSession = mockStorage();
+  const mockLocal = mockStorage();
+
+  (globalThis as any).window = {};
+  (globalThis as any).sessionStorage = mockSession;
+  (globalThis as any).localStorage = mockLocal;
+
+  // Simulate legacy token in localStorage
+  mockLocal.setItem('manuscript_auth_token', 'legacy-leak');
+
+  const { getStoredToken, setStoredToken } = await import('../api/client');
+
+  // Setting a new session token should store in sessionStorage and purge localStorage
+  setStoredToken('new-session-jwt');
+  assert.equal(getStoredToken(), 'new-session-jwt');
+  assert.equal(mockSession.getItem('manuscript_auth_token'), 'new-session-jwt');
+  assert.equal(mockLocal.getItem('manuscript_auth_token'), null);
+
+  // Clearing token should purge both
+  setStoredToken(null);
+  assert.equal(getStoredToken(), null);
+  assert.equal(mockSession.getItem('manuscript_auth_token'), null);
+  assert.equal(mockLocal.getItem('manuscript_auth_token'), null);
+
+  delete (globalThis as any).window;
+  delete (globalThis as any).sessionStorage;
+  delete (globalThis as any).localStorage;
+});
