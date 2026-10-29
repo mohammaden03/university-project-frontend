@@ -1,13 +1,13 @@
 {
-  "name": "react-example",
+  "name": "manuscript-ai-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "start": "vite preview --port 3000 --host 0.0.0.0",
-    "preview": "vite preview",
+    "start": "vite preview --port 4173 --host 0.0.0.0",
+    "preview": "vite preview --port 4173 --host 0.0.0.0",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "test": "tsx --test src/**/*.test.ts"

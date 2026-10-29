@@ -13,7 +13,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   connectionStatus: 'CONNECTED' | 'DISCONNECTED' | 'CHECKING';
   apiBaseUrl: string;
-  login: (email: string, password: string, remember?: boolean) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   devQuickLogin?: (role: UserRole, password: string) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -98,12 +98,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, [refreshUser, checkBackendHealth]);
 
-  const login = async (email: string, password: string, remember = true) => {
+  const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
       const res = await authApi.login(email, password);
       if (res.success && res.data) {
-        setStoredToken(res.data.accessToken, remember);
+        setStoredToken(res.data.accessToken);
         setUser(res.data.user);
         setConnectionStatus('CONNECTED');
       }
@@ -130,7 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('ورود سریع فقط در محیط توسعه (DEV) مجاز است.');
     }
     const userRef = DEV_USERS[role];
-    await login(userRef.email, password, false);
+    await login(userRef.email, password);
   };
 
   return (

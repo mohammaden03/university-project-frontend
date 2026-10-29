@@ -19,6 +19,70 @@ export const DEFAULT_BASE_URL =
   'http://localhost:3000/api/v1';
 
 /**
+ * Validates whether an API target origin is approved.
+ * Protects against Bearer token exfiltration to untrusted 3rd-party domains.
+ */
+export function isApprovedApiOrigin(url: string | null | undefined): boolean {
+  if (!url || typeof url !== 'string') return false;
+  const trimmed = url.trim();
+
+  // Relative path is always same-origin and approved
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//')) {
+    return true;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    const hostname = parsed.hostname.toLowerCase();
+
+    // 1. Loopback / local development origins
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '::1' ||
+      hostname === '[::1]'
+    ) {
+      return true;
+    }
+
+    // 2. Matches DEFAULT_BASE_URL origin
+    if (DEFAULT_BASE_URL && !DEFAULT_BASE_URL.startsWith('/')) {
+      try {
+        const defaultOrigin = new URL(DEFAULT_BASE_URL).origin.toLowerCase();
+        if (parsed.origin.toLowerCase() === defaultOrigin) {
+          return true;
+        }
+      } catch {}
+    }
+
+    // 3. Current browser origin
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      if (parsed.origin.toLowerCase() === window.location.origin.toLowerCase()) {
+        return true;
+      }
+    }
+
+    // 4. Explicitly allowed origins from environment
+    const allowedEnv = (
+      (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_ALLOWED_API_ORIGINS) ||
+      (typeof process !== 'undefined' && process.env?.VITE_ALLOWED_API_ORIGINS) ||
+      ''
+    ) as string;
+
+    if (allowedEnv) {
+      const allowedList = allowedEnv.split(',').map((o) => o.trim().toLowerCase());
+      if (allowedList.includes(parsed.origin.toLowerCase()) || allowedList.includes(hostname)) {
+        return true;
+      }
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Validates a candidate API Base URL before applying to HTTP clients.
  * Prevents SSRF / malicious credential exfiltration via localStorage tampering.
  */
@@ -46,6 +110,15 @@ export function validateApiBaseUrl(url: string | null | undefined): { isValid: b
     if (parsed.username || parsed.password) {
       return { isValid: false, error: 'درج نام کاربری یا رمز عبور در URL مجاز نیست.' };
     }
+
+    // Origin whitelist check
+    if (!isApprovedApiOrigin(trimmed)) {
+      return {
+        isValid: false,
+        error: 'آدرس وارد شده در فهرست مبداهای مجاز و مورد اعتماد سامانه (Trusted Origins) قرار ندارد.',
+      };
+    }
+
     const cleanPath = parsed.pathname.replace(/\/+$/, '');
     const normalized = `${parsed.origin}${cleanPath}`;
     return { isValid: true, normalizedUrl: normalized };
@@ -113,11 +186,14 @@ export const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Request interceptor: Attach JWT Bearer token
+// Request interceptor: Attach JWT Bearer token ONLY to approved target origins
 apiClient.interceptors.request.use((config) => {
   const token = getStoredToken();
-  if (token && config.headers) {
+  const target = config.baseURL || config.url || '';
+  if (token && config.headers && isApprovedApiOrigin(target)) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else if (config.headers && config.headers.Authorization) {
+    delete config.headers.Authorization;
   }
   // Ensure baseURL is fresh if altered
   config.baseURL = getEffectiveApiBaseUrl();

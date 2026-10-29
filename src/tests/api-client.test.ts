@@ -1,20 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateApiBaseUrl } from '../api/client';
+import { validateApiBaseUrl, isApprovedApiOrigin } from '../api/client';
 
-test('validateApiBaseUrl accepts valid absolute HTTP/HTTPS URLs', () => {
+test('validateApiBaseUrl accepts valid approved HTTP/HTTPS URLs and loopback origins', () => {
   const res1 = validateApiBaseUrl('http://localhost:3000/api/v1');
   assert.equal(res1.isValid, true);
   assert.equal(res1.normalizedUrl, 'http://localhost:3000/api/v1');
 
-  const res2 = validateApiBaseUrl('https://api.manuscript.ac.ir/api/v1/');
+  const res2 = validateApiBaseUrl('http://127.0.0.1:8080/v1/');
   assert.equal(res2.isValid, true);
-  // Strips trailing slashes
-  assert.equal(res2.normalizedUrl, 'https://api.manuscript.ac.ir/api/v1');
+  assert.equal(res2.normalizedUrl, 'http://127.0.0.1:8080/v1');
 
-  const res3 = validateApiBaseUrl('http://127.0.0.1:8080/v1');
+  const res3 = validateApiBaseUrl('http://[::1]:3000/api/v1');
   assert.equal(res3.isValid, true);
-  assert.equal(res3.normalizedUrl, 'http://127.0.0.1:8080/v1');
+  assert.equal(res3.normalizedUrl, 'http://[::1]:3000/api/v1');
 });
 
 test('validateApiBaseUrl accepts safe relative paths', () => {
@@ -25,6 +24,16 @@ test('validateApiBaseUrl accepts safe relative paths', () => {
   const res2 = validateApiBaseUrl('/custom-prefix///');
   assert.equal(res2.isValid, true);
   assert.equal(res2.normalizedUrl, '/custom-prefix');
+});
+
+test('validateApiBaseUrl rejects untrusted external origins (Credential Leakage Protection)', () => {
+  const res1 = validateApiBaseUrl('https://evil-attacker.com/collect');
+  assert.equal(res1.isValid, false);
+  assert.match(res1.error || '', /Trusted Origins/);
+
+  const res2 = validateApiBaseUrl('http://phishing-site.org/api/v1');
+  assert.equal(res2.isValid, false);
+  assert.match(res2.error || '', /Trusted Origins/);
 });
 
 test('validateApiBaseUrl rejects protocol-relative URLs (SSRF / Open Redirect)', () => {
@@ -48,7 +57,7 @@ test('validateApiBaseUrl rejects malicious URI schemes and invalid URLs', () => 
 });
 
 test('validateApiBaseUrl rejects URLs containing credentials (user:pass@host)', () => {
-  const res = validateApiBaseUrl('http://admin:secret@api.manuscript.internal/v1');
+  const res = validateApiBaseUrl('http://admin:secret@localhost:3000/v1');
   assert.equal(res.isValid, false);
   assert.match(res.error || '', /رمز عبور/);
 });
@@ -58,6 +67,14 @@ test('validateApiBaseUrl rejects empty or null values', () => {
   assert.equal(validateApiBaseUrl('   ').isValid, false);
   assert.equal(validateApiBaseUrl(null as any).isValid, false);
   assert.equal(validateApiBaseUrl(undefined as any).isValid, false);
+});
+
+test('isApprovedApiOrigin recognizes safe relative paths and local origins only', () => {
+  assert.equal(isApprovedApiOrigin('/api/v1'), true);
+  assert.equal(isApprovedApiOrigin('http://localhost:3000/api/v1'), true);
+  assert.equal(isApprovedApiOrigin('http://127.0.0.1:4173'), true);
+  assert.equal(isApprovedApiOrigin('http://evil.com/api'), false);
+  assert.equal(isApprovedApiOrigin('https://external-service.net'), false);
 });
 
 test('Token storage enforces sessionStorage and cleans up legacy localStorage', async () => {
