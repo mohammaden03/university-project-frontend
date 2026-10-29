@@ -121,11 +121,12 @@ export const RecognitionDialog: React.FC<RecognitionDialogProps> = ({
       await recognitionApi.cancelRecognitionJob(activeJob.id);
       setActiveJob((prev) => (prev ? { ...prev, status: 'CANCELLED' } : null));
     } catch (err: any) {
-      alert(err?.message || 'خطا در لغو پردازش');
+      setErrorMessage(err?.message || 'خطا در لغو پردازش');
     }
   };
 
   const selectedModel = models.find((m) => m.id === selectedModelId);
+  const isSelectedModelUnavailable = selectedModel && !selectedModel.isAvailable;
 
   return (
     <Modal
@@ -156,6 +157,7 @@ export const RecognitionDialog: React.FC<RecognitionDialogProps> = ({
               <Button
                 variant="primary"
                 size="sm"
+                disabled={Boolean(isSelectedModelUnavailable)}
                 isLoading={isSubmitting}
                 onClick={handleStartRecognition}
                 leftIcon={<ScanText className="w-4 h-4" />}
@@ -194,7 +196,9 @@ export const RecognitionDialog: React.FC<RecognitionDialogProps> = ({
                       <div className="flex items-center gap-1.5">
                         <Badge
                           variant={
-                            m.providerType === 'pretrained'
+                            !m.isAvailable
+                              ? 'danger'
+                              : m.providerType === 'pretrained'
                               ? 'purple'
                               : m.providerType === 'finetuned'
                               ? 'success'
@@ -202,7 +206,9 @@ export const RecognitionDialog: React.FC<RecognitionDialogProps> = ({
                           }
                           size="sm"
                         >
-                          {m.providerType === 'pretrained'
+                          {!m.isAvailable
+                            ? 'غیرفعال'
+                            : m.providerType === 'pretrained'
                             ? 'مدل پیش‌آموخته'
                             : m.providerType === 'finetuned'
                             ? 'تنظیم دقیق (Fine-Tuned)'
@@ -218,6 +224,14 @@ export const RecognitionDialog: React.FC<RecognitionDialogProps> = ({
                   </div>
                 );
               })}
+            </div>
+          )}
+          {isSelectedModelUnavailable && (
+            <div className="mt-2 p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-xl text-xs text-amber-800 dark:text-amber-200 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>
+                مدل انتخابی در وضعیت {selectedModel.status} بوده و در دسترس نیست. جهت ارسال بازشناسی، لطفاً مدلی دیگر انتخاب فرمایید.
+              </span>
             </div>
           )}
         </div>
@@ -299,8 +313,15 @@ export const RecognitionDialog: React.FC<RecognitionDialogProps> = ({
               <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300">
                 <CheckCircle2 className="w-4 h-4" />
                 <span>
-                  بازشناسی پایان یافت. زمان استنتاج: {activeJob.processingDurationMs || '۱۸۰۰'} میلی‌ثانیه. متن استخراج شده در ویرایشگر آماده است.
+                  بازشناسی پایان یافت.{activeJob.processingDurationMs ? ` زمان استنتاج: ${activeJob.processingDurationMs} میلی‌ثانیه.` : ''} متن استخراج شده در ویرایشگر آماده است.
                 </span>
+              </div>
+            )}
+
+            {activeJob.status === 'CANCELLED' && (
+              <div className="flex items-center gap-2 text-xs text-stone-600 dark:text-stone-400">
+                <StopCircle className="w-4 h-4 text-stone-400" />
+                <span>فرآیند بازشناسی این برگ لغو گردید.</span>
               </div>
             )}
           </div>

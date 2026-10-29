@@ -26,9 +26,11 @@ import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
 import { Modal } from '../components/common/Modal';
 import { LoadingSpinner, ErrorAlert } from '../components/common/Badge';
+import { useToast } from '../context/ToastContext';
 
 export const UsersPage: React.FC = () => {
   const { user: currentUser } = useAuth();
+  const toast = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +47,7 @@ export const UsersPage: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editRole, setEditRole] = useState<UserRole>('RESEARCHER');
   const [editActive, setEditActive] = useState<boolean>(true);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -81,10 +84,11 @@ export const UsersPage: React.FC = () => {
         setNewEmail('');
         setNewPassword('');
         setNewDisplayName('');
+        toast.success('کاربر جدید با موفقیت ایجاد شد');
         fetchUsers();
       }
     } catch (err: any) {
-      alert(err?.message || 'خطا در ایجاد کاربر');
+      toast.error(err?.message || 'خطا در ایجاد کاربر');
     } finally {
       setIsSubmitting(false);
     }
@@ -98,19 +102,22 @@ export const UsersPage: React.FC = () => {
         isActive: editActive,
       });
       setEditingUser(null);
+      toast.success('اطلاعات کاربر با موفقیت به‌روزرسانی شد');
       fetchUsers();
     } catch (err: any) {
-      alert(err?.message || 'خطا در ویرایش کاربر');
+      toast.error(err?.message || 'خطا در ویرایش کاربر');
     }
   };
 
-  const handleDeleteUser = async (userToDelete: User) => {
-    if (!confirm(`آیا از حذف کاربر «${userToDelete.displayName}» اطمینان دارید؟`)) return;
+  const confirmDeleteUser = async () => {
+    if (!deletingUser) return;
     try {
-      await usersApi.deleteUser(userToDelete.id);
+      await usersApi.deleteUser(deletingUser.id);
+      setDeletingUser(null);
+      toast.success('کاربر با موفقیت حذف گردید');
       fetchUsers();
     } catch (err: any) {
-      alert(err?.message || 'خطا در حذف کاربر');
+      toast.error(err?.message || 'خطا در حذف کاربر');
     }
   };
 
@@ -204,8 +211,9 @@ export const UsersPage: React.FC = () => {
                         </button>
                         {u.id !== currentUser?.id && (
                           <button
-                            onClick={() => handleDeleteUser(u)}
+                            onClick={() => setDeletingUser(u)}
                             className="p-1 text-stone-400 hover:text-rose-600"
+                            aria-label={`حذف کاربر ${u.displayName}`}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -333,6 +341,30 @@ export const UsersPage: React.FC = () => {
               </label>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingUser && (
+        <Modal
+          isOpen={true}
+          onClose={() => setDeletingUser(null)}
+          title="تایید حذف حساب کاربری"
+          maxWidth="sm"
+          footer={
+            <div className="flex gap-2">
+              <Button variant="secondary" size="sm" onClick={() => setDeletingUser(null)}>
+                انصراف
+              </Button>
+              <Button variant="danger" size="sm" onClick={confirmDeleteUser}>
+                حذف کاربر
+              </Button>
+            </div>
+          }
+        >
+          <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed">
+            آیا از حذف حساب کاربری «{deletingUser.displayName}» ({deletingUser.email}) اطمینان دارید؟ این عملیات غیرقابل بازگشت است.
+          </p>
         </Modal>
       )}
     </div>

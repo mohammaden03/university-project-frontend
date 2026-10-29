@@ -28,20 +28,27 @@ export const SettingsPage: React.FC = () => {
   const { apiBaseUrl, connectionStatus, checkBackendHealth, user } = useAuth();
   const [customUrl, setCustomUrl] = useState<string>(apiBaseUrl);
   const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [urlError, setUrlError] = useState<string | null>(null);
   const [isTesting, setIsTesting] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'connection' | 'swagger'>('connection');
 
   const handleSaveUrl = (e: React.FormEvent) => {
     e.preventDefault();
-    setCustomApiBaseUrl(customUrl.trim() || null);
+    setUrlError(null);
+    const result = setCustomApiBaseUrl(customUrl.trim() || null);
+    if (!result.success) {
+      setUrlError(result.error || 'آدرس وارد شده نامعتبر است.');
+      return;
+    }
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2500);
     checkBackendHealth();
   };
 
   const handleResetDefault = () => {
+    setUrlError(null);
     setCustomApiBaseUrl(null);
-    setCustomUrl('/api/v1');
+    setCustomUrl(import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1');
     checkBackendHealth();
   };
 
@@ -128,6 +135,13 @@ export const SettingsPage: React.FC = () => {
                   پیش‌فرض سرور محلی: <code className="font-mono">http://localhost:3000/api/v1</code> یا پراکسی نسبی <code className="font-mono">/api/v1</code>
                 </p>
               </div>
+
+              {urlError && (
+                <p className="text-rose-600 dark:text-rose-400 text-xs flex items-center gap-1 font-medium">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  {urlError}
+                </p>
+              )}
 
               {isSaved && (
                 <p className="text-emerald-600 text-xs flex items-center gap-1 font-medium">

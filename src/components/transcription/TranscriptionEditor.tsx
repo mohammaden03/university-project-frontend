@@ -26,6 +26,7 @@ import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
 import { RevisionHistoryModal } from './RevisionHistoryModal';
 import { Modal } from '../common/Modal';
+import { useToast } from '../../context/ToastContext';
 
 export interface TranscriptionEditorProps {
   transcription: Transcription;
@@ -40,6 +41,7 @@ export const TranscriptionEditor: React.FC<TranscriptionEditorProps> = ({
   canEdit = true,
   canApprove = true,
 }) => {
+  const toast = useToast();
   const [correctedText, setCorrectedText] = useState<string>(transcription.correctedText);
   const [changeSummary, setChangeSummary] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'editor' | 'raw' | 'diff'>('editor');
@@ -88,6 +90,7 @@ export const TranscriptionEditor: React.FC<TranscriptionEditorProps> = ({
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
         onSaved?.(res.data);
+        toast.success('بازنویسی نسخه با موفقیت ذخیره شد');
       }
     } catch (err: any) {
       if (err?.statusCode === 409 || err?.code === 'CONFLICT') {
@@ -102,7 +105,7 @@ export const TranscriptionEditor: React.FC<TranscriptionEditorProps> = ({
           setConflictError({ message: err.message });
         }
       } else {
-        alert(err?.message || 'خطا در ذخیره‌سازی بازنویسی');
+        toast.error(err?.message || 'خطا در ذخیره‌سازی بازنویسی');
       }
     } finally {
       setIsSaving(false);
@@ -115,9 +118,10 @@ export const TranscriptionEditor: React.FC<TranscriptionEditorProps> = ({
       const res = await transcriptionsApi.approveTranscription(transcription.id);
       if (res.success && res.data) {
         onSaved?.(res.data);
+        toast.success('بازنویسی نسخه با موفقیت تایید نهایی گردید');
       }
     } catch (err: any) {
-      alert(err?.message || 'خطا در تایید نهایی بازنویسی');
+      toast.error(err?.message || 'خطا در تایید نهایی بازنویسی');
     } finally {
       setIsApproving(false);
     }

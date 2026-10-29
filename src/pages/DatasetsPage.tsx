@@ -36,6 +36,7 @@ export const DatasetsPage: React.FC = () => {
   );
   const [validationResult, setValidationResult] = useState<ManifestValidationResult | null>(null);
   const [isValidating, setIsValidating] = useState<boolean>(false);
+  const [validationModalError, setValidationModalError] = useState<string | null>(null);
 
   const fetchDatasets = async () => {
     setIsLoading(true);
@@ -59,13 +60,14 @@ export const DatasetsPage: React.FC = () => {
   const handleValidateManifest = async () => {
     setIsValidating(true);
     setValidationResult(null);
+    setValidationModalError(null);
     try {
       const res = await datasetsApi.validateManifest(manifestCsv);
       if (res.success && res.data) {
         setValidationResult(res.data);
       }
     } catch (err: any) {
-      alert(err?.message || 'خطا در اعتبارسنجی مانیفست');
+      setValidationModalError(err?.message || 'خطا در اعتبارسنجی مانیفست');
     } finally {
       setIsValidating(false);
     }
@@ -201,6 +203,13 @@ export const DatasetsPage: React.FC = () => {
               ستون‌های الزامی: sample_id, image_path, transcription, split (TRAIN/VAL/TEST), language
             </p>
           </div>
+
+          {validationModalError && (
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{validationModalError}</span>
+            </div>
+          )}
 
           {/* Validation Result Box */}
           {validationResult && (

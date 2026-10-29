@@ -25,6 +25,7 @@ import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
 import { LoadingSpinner, ErrorAlert, EmptyState } from '../components/common/Badge';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 export interface TranscriptionReviewPageProps {
   navigate: (route: string, params?: Record<string, any>) => void;
@@ -32,6 +33,7 @@ export interface TranscriptionReviewPageProps {
 
 export const TranscriptionReviewPage: React.FC<TranscriptionReviewPageProps> = ({ navigate }) => {
   const { user } = useAuth();
+  const toast = useToast();
   const [items, setItems] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [statusFilter, setStatusFilter] = useState<string>('PENDING_REVIEW');
@@ -63,9 +65,10 @@ export const TranscriptionReviewPage: React.FC<TranscriptionReviewPageProps> = (
   const handleApprove = async (transcriptionId: string) => {
     try {
       await transcriptionsApi.approveTranscription(transcriptionId);
+      toast.success('بازنویسی نسخه با موفقیت تایید و تصویب شد');
       fetchItems();
     } catch (err: any) {
-      alert(err?.message || 'خطا در تایید بازنویسی');
+      toast.error(err?.message || 'خطا در تایید بازنویسی');
     }
   };
 

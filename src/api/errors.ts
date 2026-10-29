@@ -58,27 +58,32 @@ export function normalizeAxiosError(error: unknown): AppApiError {
   }
 
   const status = axiosError.response.status;
-  const errorData = axiosError.response.data?.error;
+  const responseData = axiosError.response.data as any;
+  const errorData = responseData?.error;
 
-  const code = errorData?.code || `HTTP_${status}`;
+  const code = errorData?.code || responseData?.error || `HTTP_${status}`;
   const details = errorData?.details;
 
-  let message = errorData?.message;
+  let rawMessage = errorData?.message || responseData?.message;
+  let message: string | undefined = Array.isArray(rawMessage) ? rawMessage.join(' • ') : (typeof rawMessage === 'string' ? rawMessage : undefined);
 
   // Persian friendly translation fallbacks
-  if (!message || status === 401 || status === 403 || status === 409 || status === 404) {
+  if (!message || status === 401 || status === 403 || status === 409 || status === 404 || status === 413) {
     switch (status) {
       case 401:
-        message = 'نشست کاربری شما منقضی شده یا وارد حساب کاربری خود نشده‌اید. لطفاً مجدداً وارد شوید.';
+        message = message || 'نشست کاربری شما منقضی شده یا وارد حساب کاربری خود نشده‌اید. لطفاً مجدداً وارد شوید.';
         break;
       case 403:
-        message = 'شما مجوز لازم برای انجام این عملیات را ندارید. (نیازمند نقش بالاتر)';
+        message = message || 'شما مجوز لازم برای انجام این عملیات را ندارید. (نیازمند نقش بالاتر)';
         break;
       case 404:
-        message = 'منبع یا رکورد درخواستی در سامانه یافت نشد.';
+        message = message || 'منبع یا رکورد درخواستی در سامانه یافت نشد.';
         break;
       case 409:
-        message = 'تداخل همزمانی: این رکورد توسط کاربر دیگری تغییر یافته است. برای جلوگیری از بازنویسی ناخواسته، صفحه را نوسازی فرمایید.';
+        message = message || 'تداخل همزمانی: این رکورد توسط کاربر دیگری تغییر یافته است. برای جلوگیری از بازنویسی ناخواسته، صفحه را نوسازی فرمایید.';
+        break;
+      case 413:
+        message = message || 'حجم تصویر نسخه خطی بیش از حد مجاز سرور است. لطفاً فایل سبک‌تری آپلود نمایید.';
         break;
       case 422:
       case 400:

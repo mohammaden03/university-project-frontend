@@ -31,6 +31,7 @@ import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 import { Modal } from '../components/common/Modal';
 import { LoadingSpinner, ErrorAlert, EmptyState } from '../components/common/Badge';
+import { useToast } from '../context/ToastContext';
 
 const bookSchema = z.object({
   title: z.string().min(2, 'عنوان کتاب باید حداقل ۲ نویسه باشد'),
@@ -52,6 +53,7 @@ export interface BooksPageProps {
 
 export const BooksPage: React.FC<BooksPageProps> = ({ navigate }) => {
   const { user } = useAuth();
+  const toast = useToast();
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -110,10 +112,11 @@ export const BooksPage: React.FC<BooksPageProps> = ({ navigate }) => {
       if (res.success && res.data) {
         setIsCreateOpen(false);
         reset();
+        toast.success('کتاب جدید با موفقیت ثبت شد');
         fetchBooks();
       }
     } catch (err: any) {
-      alert(err?.message || 'خطا در ثبت کتاب جدید');
+      toast.error(err?.message || 'خطا در ثبت کتاب جدید');
     }
   };
 
@@ -122,9 +125,10 @@ export const BooksPage: React.FC<BooksPageProps> = ({ navigate }) => {
     try {
       await booksApi.deleteBook(deletingBook.id);
       setDeletingBook(null);
+      toast.success('کتاب با موفقیت حذف شد');
       fetchBooks();
     } catch (err: any) {
-      alert(err?.message || 'خطا در حذف کتاب');
+      toast.error(err?.message || 'خطا در حذف کتاب');
     }
   };
 

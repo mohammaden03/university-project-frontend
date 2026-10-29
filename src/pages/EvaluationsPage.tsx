@@ -26,8 +26,10 @@ import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
 import { LoadingSpinner, ErrorAlert, EmptyState } from '../components/common/Badge';
 import { Modal } from '../components/common/Modal';
+import { useToast } from '../context/ToastContext';
 
 export const EvaluationsPage: React.FC = () => {
+  const toast = useToast();
   const [evaluations, setEvaluations] = useState<EvaluationExperiment[]>([]);
   const [models, setModels] = useState<ModelRegistry[]>([]);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
@@ -85,10 +87,11 @@ export const EvaluationsPage: React.FC = () => {
 
       if (res.success && res.data) {
         setIsModalOpen(false);
+        toast.success('آزمون ارزیابی مدل با موفقیت آغاز شد');
         fetchEvaluations();
       }
     } catch (err: any) {
-      alert(err?.message || 'خطا در اجرای ارزیابی مدل');
+      toast.error(err?.message || 'خطا در اجرای ارزیابی مدل');
     } finally {
       setIsSubmitting(false);
     }
@@ -252,6 +255,7 @@ export const EvaluationsPage: React.FC = () => {
 };
 
 export const TrainingPage: React.FC = () => {
+  const toast = useToast();
   const [jobs, setJobs] = useState<TrainingJob[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -296,10 +300,11 @@ export const TrainingPage: React.FC = () => {
 
       if (res.success && res.data) {
         setIsModalOpen(false);
+        toast.success('فرآیند آموزش جدید با موفقیت آغاز شد');
         fetchJobs();
       }
     } catch (err: any) {
-      alert(err?.message || 'خطا در شروع آموزش مدل');
+      toast.error(err?.message || 'خطا در شروع آموزش مدل');
     } finally {
       setIsSubmitting(false);
     }
